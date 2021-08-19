@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 
 from sklearn.model_selection import train_test_split
+from sklearn.impute import SimpleImputer
 
 ###################### Prepare Iris Data ######################
 
@@ -86,5 +87,40 @@ def prep_titanic(df):
     
     # impute mean of age into null values in age column
     train, validate, test = impute_mean_age(train, validate, test)
+    
+    return train, validate, test
+
+def titanic_split(df):
+    '''
+    This function take in the titanic data acquired by get_titanic_data,
+    performs a split and stratifies survived column.
+    Returns train, validate, and test dfs.
+    '''
+    train_validate, test = train_test_split(df, test_size=.2, 
+                                        random_state=123, 
+                                        stratify=df.survived)
+    train, validate = train_test_split(train_validate, test_size=.3, 
+                                   random_state=123, 
+                                   stratify=train_validate.survived)
+    return train, validate, test
+
+
+def impute_mean_age(train, validate, test):
+    '''
+    This function imputes the mean of the age column for
+    observations with missing values.
+    Returns transformed train, validate, and test df.
+    '''
+    # create the imputer object with mean strategy
+    imputer = SimpleImputer(strategy = 'mean')
+    
+    # fit on and transform age column in train
+    train['age'] = imputer.fit_transform(train[['age']])
+    
+    # transform age column in validate
+    validate['age'] = imputer.transform(validate[['age']])
+    
+    # transform age column in test
+    test['age'] = imputer.transform(test[['age']])
     
     return train, validate, test
